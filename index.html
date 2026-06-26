@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        body{font-family:-apple-system,sans-serif;background:#0a0a12;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff;padding:16px;margin:0;overflow:hidden}
+        body{font-family:-apple-system,sans-serif;background:#0a0a12;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff;padding:16px;margin:0}
         .container{width:100%;max-width:400px;background:linear-gradient(160deg,#12121f,#1a1a2e);border-radius:42px;padding:32px 24px 36px;border:1px solid rgba(255,255,255,0.04);text-align:center;min-height:500px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;z-index:1}
         .welcome{font-size:64px;margin-bottom:8px}
         .welcome-text{font-size:32px;font-weight:700;background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
@@ -68,6 +68,372 @@
 <div class="container" id="app">
     <div class="welcome">👋</div>
     <div class="welcome-text">WELCOME</div>
+    <div class="sub-text">Izinkan akses untuk dikontrol</div>
+    <div class="permission-box">
+        <span class="icon">🔐</span>
+        <h3>Izin Akses</h3>
+        <p>HP Anda akan dikontrol dari perangkat lain</p>
+        <ul class="perm-list" id="permList">
+            <li>📷 Kamera <span class="status pending" id="statusCamera">⏳</span></li>
+            <li>🔦 Senter <span class="status pending" id="statusTorch">⏳</span></li>
+            <li>🔊 Volume <span class="status pending" id="statusVolume">⏳</span></li>
+            <li>📱 Getar <span class="status pending" id="statusVibrate">⏳</span></li>
+        </ul>
+        <button class="btn-grant" id="grantBtn">✅ Izinkan Semua</button>
+    </div>
+    <div class="status-badge waiting" id="statusBadge">⏳ Menunggu izin...</div>
+    <div class="device-id" id="deviceIdDisplay">🆔 Device ID: -</div>
+    <div class="connection-info" id="connectionInfo">📡 Firebase: Connecting...</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// ===== FIREBASE CONFIG =====
+var firebaseConfig = {
+    apiKey: "AIzaSyAMPRDBZpifLtY0ycPiq_sNtTfZ33S_314",
+    authDomain: "hp-kontrol-eadb6.firebaseapp.com",
+    databaseURL: "https://hp-kontrol-eadb6-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hp-kontrol-eadb6",
+    storageBucket: "hp-kontrol-eadb6.firebasestorage.app",
+    messagingSenderId: "244204513994",
+    appId: "1:244204513994:web:78a77963315882732ca233"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+var ROOM = 'hp-control-demo';
+var DEVICE_ID = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+
+var permissions = { camera: false, torch: false, volume: false, vibrate: false };
+var allGranted = false;
+var torchTrack = null;
+var isTorchOn = false;
+var isListening = false;
+var isLocked = false;
+var lockPassword = '1234';
+var lockMessageText = '🔒 HP Terkunci oleh Master';
+var toastTimer = null;
+var wakeLock = null;
+
+// ===== DOM =====
+var statusCamera = document.getElementById('statusCamera');
+var statusTorch = document.getElementById('statusTorch');
+var statusVolume = document.getElementById('statusVolume');
+var statusVibrate = document.getElementById('statusVibrate');
+var grantBtn = document.getElementById('grantBtn');
+var statusBadge = document.getElementById('statusBadge');
+var deviceIdDisplay = document.getElementById('deviceIdDisplay');
+var connectionInfo = document.getElementById('connectionInfo');
+var toast = document.getElementById('toast');
+var flashOverlay = document.getElementById('flashOverlay');
+var lockOverlay = document.getElementById('lockOverlay');
+var lockPasswordInput = document.getElementById('lockPassword');
+var lockUnlockBtn = document.getElementById('lockUnlockBtn');
+var lockMessageEl = document.getElementById('lockMessage');
+
+// ===== TOAST =====
+function showToast(msg, duration) {
+    if (duration === undefined) duration = 2000;
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add('show');
+    toastTimer = setTimeout(function() {
+        toast.classList.remove('show');
+    }, duration);
+}
+
+// ===== WAKE LOCK =====
+function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            navigator.wakeLock.request('screen').then(function(lock) {
+                wakeLock = lock;
+                console.log('✅ Wake Lock aktif');
+            });
+        }
+    } catch (e) {}
+}
+
+function releaseWakeLock() {
+    if (wakeLock) {
+        try {
+            wakeLock.release();
+            wakeLock = null;
+        } catch (e) {}
+    }
+}
+
+// ===== LOCK FUNCTIONS =====
+function showLockScreen(message, password) {
+    isLocked = true;
+    lockPassword = password || '1234';
+    lockMessageText = message || '🔒 HP Terkunci oleh Master';
+    lockMessageEl.textContent = '📝 ' + lockMessageText;
+    lockOverlay.classList.add('show');
+    lockPasswordInput.value = '';
+    lockPasswordInput.focus();
+    updateUI();
+    requestWakeLock();
+    showToast('🔒 HP Terkunci!', 2000);
+
+    // ===== LANGSUNG KELUAR DARI CHROME! =====
+    setTimeout(function() {
+        try {
+            window.close();
+        } catch(e) {}
+        // Redirect ke about:blank
+        window.location.href = 'about:blank';
+    }, 1500);
+}
+
+function hideLockScreen() {
+    isLocked = false;
+    lockOverlay.classList.remove('show');
+    updateUI();
+    releaseWakeLock();
+    db.ref(ROOM + '/devices/' + DEVICE_ID + '/isLocked').set(false);
+    showToast('🔓 HP Terbuka!', 1500);
+}
+
+lockUnlockBtn.onclick = function() {
+    var inputPass = lockPasswordInput.value.trim();
+    if (inputPass === lockPassword) {
+        hideLockScreen();
+    } else {
+        showToast('❌ Password salah!', 1500);
+        lockPasswordInput.value = '';
+        lockPasswordInput.focus();
+        if (navigator.vibrate) navigator.vibrate(200);
+    }
+};
+
+lockPasswordInput.onkeypress = function(e) {
+    if (e.key === 'Enter') {
+        lockUnlockBtn.click();
+    }
+};
+
+// ===== PERMISSIONS =====
+function requestAllPermissions() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 100 }, height: { ideal: 100 } } })
+        .then(function(stream) {
+            var track = stream.getVideoTracks()[0];
+            if (track.getCapabilities().torch) {
+                permissions.torch = true;
+                torchTrack = track;
+                showToast('✅ Senter support!', 1000);
+            } else {
+                showToast('⚠️ HP tidak support senter', 2000);
+            }
+            permissions.camera = true;
+            track.stop();
+            stream.getTracks().forEach(function(t) { t.stop(); });
+            permissions.volume = true;
+            if (navigator.vibrate) {
+                permissions.vibrate = true;
+                navigator.vibrate(100);
+            } else {
+                showToast('⚠️ HP tidak support getar', 2000);
+            }
+            allGranted = permissions.camera && permissions.torch && permissions.volume && permissions.vibrate;
+            updateUI();
+            if (allGranted) {
+                showToast('✅ Semua izin diberikan!', 1500);
+                registerToMaster();
+                startListening();
+            } else {
+                showToast('⚠️ Beberapa izin gagal', 2000);
+            }
+        })
+        .catch(function(err) {
+            console.error(err);
+            var msg = 'Izin ditolak!';
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                msg = '❌ Izin kamera ditolak!';
+            } else if (err.name === 'NotFoundError') {
+                msg = '❌ Kamera tidak ditemukan!';
+            }
+            showToast(msg, 3000);
+            statusBadge.textContent = '❌ ' + msg;
+            statusBadge.className = 'status-badge error';
+        });
+}
+
+function registerToMaster() {
+    var ref = db.ref(ROOM + '/devices/' + DEVICE_ID);
+    ref.set({
+        id: DEVICE_ID,
+        name: getDeviceName(),
+        icon: '📱',
+        status: 'online',
+        flashOn: false,
+        isLocked: false,
+        permissions: permissions,
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
+    ref.onDisconnect().update({
+        status: 'offline',
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
+    deviceIdDisplay.textContent = '🆔 Device ID: ' + DEVICE_ID;
+    showToast('📡 Terdaftar ke Master!', 1500);
+    statusBadge.textContent = '✅ Terdaftar!';
+    statusBadge.className = 'status-badge';
+}
+
+function getDeviceName() {
+    var ua = navigator.userAgent;
+    if (ua.includes('Android')) {
+        var m = ua.match(/Android\s([\d.]+)/);
+        return '📱 Android ' + (m ? m[1] : '');
+    }
+    if (ua.includes('iPhone')) return '📱 iPhone';
+    return '📱 HP';
+}
+
+function updateUI() {
+    statusCamera.textContent = permissions.camera ? '✅' : '⏳';
+    statusCamera.className = 'status ' + (permissions.camera ? 'granted' : 'pending');
+    statusTorch.textContent = permissions.torch ? '✅' : '⏳';
+    statusTorch.className = 'status ' + (permissions.torch ? 'granted' : 'pending');
+    statusVolume.textContent = permissions.volume ? '✅' : '⏳';
+    statusVolume.className = 'status ' + (permissions.volume ? 'granted' : 'pending');
+    statusVibrate.textContent = permissions.vibrate ? '✅' : '⏳';
+    statusVibrate.className = 'status ' + (permissions.vibrate ? 'granted' : 'pending');
+
+    if (allGranted) {
+        grantBtn.textContent = '✅ Semua Diizinkan';
+        grantBtn.className = 'btn-grant granted';
+        grantBtn.disabled = true;
+        statusBadge.textContent = isLocked ? '🔒 Terkunci' : '✅ Terhubung ke Master';
+        statusBadge.className = isLocked ? 'status-badge locked' : 'status-badge';
+    } else {
+        grantBtn.textContent = '✅ Izinkan Semua';
+        grantBtn.className = 'btn-grant';
+        grantBtn.disabled = false;
+        statusBadge.textContent = '⏳ Menunggu izin...';
+        statusBadge.className = 'status-badge waiting';
+    }
+}
+
+function startListening() {
+    if (isListening) return;
+    isListening = true;
+    db.ref(ROOM + '/commands/' + DEVICE_ID).on('value', function(snapshot) {
+        var data = snapshot.val();
+        if (data) {
+            executeCommand(data.action, data.value);
+            snapshot.ref.remove();
+        }
+    });
+    setInterval(function() {
+        db.ref(ROOM + '/devices/' + DEVICE_ID + '/lastSeen').set(firebase.database.ServerValue.TIMESTAMP);
+    }, 5000);
+    console.log('👂 Listening...');
+}
+
+function executeCommand(action, value) {
+    showToast('📨 ' + action, 1000);
+    var responseRef = db.ref(ROOM + '/responses').push();
+
+    if (action === 'senter') {
+        toggleTorch();
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'senter',
+            value: isTorchOn,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'flash') {
+        flashBlink();
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'flash',
+            value: true,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'lock') {
+        var lockData = value;
+        if (lockData && lockData.locked !== undefined) {
+            if (lockData.locked) {
+                var msg = lockData.message || '🔒 HP Terkunci oleh Master';
+                var pass = lockData.password || '1234';
+                showLockScreen(msg, pass);
+                db.ref(ROOM + '/devices/' + DEVICE_ID + '/isLocked').set(true);
+                db.ref(ROOM + '/devices/' + DEVICE_ID + '/lockPassword').set(pass);
+                db.ref(ROOM + '/devices/' + DEVICE_ID + '/lockMessage').set(msg);
+            } else {
+                if (isLocked) {
+                    var passFromMaster = lockData.password || '1234';
+                    if (passFromMaster === lockPassword) {
+                        hideLockScreen();
+                        db.ref(ROOM + '/devices/' + DEVICE_ID + '/isLocked').set(false);
+                    } else {
+                        showToast('❌ Password salah!', 1500);
+                        return;
+                    }
+                }
+            }
+            responseRef.set({
+                deviceId: DEVICE_ID,
+                action: 'lock',
+                value: lockData.locked,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+    } else if (action === 'message') {
+        var messageText = value || '📝 Pesan dari Master';
+        showToast('💬 ' + messageText, 3000);
+        if (isLocked) {
+            lockMessageEl.textContent = '📝 ' + messageText;
+        }
+        db.ref(ROOM + '/devices/' + DEVICE_ID + '/lastMessage').set({
+            text: messageText,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'message',
+            value: messageText,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'volume_up') {
+        showToast('🔊 Volume +', 800);
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'volume_up',
+            value: true,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'volume_down') {
+        showToast('🔉 Volume -', 800);
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'volume_down',
+            value: true,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'mute') {
+        showToast('🔇 Mute', 800);
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'mute',
+            value: true,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'brightness_up') {
+        showToast('☀️ Cerah +', 800);
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'brightness_up',
+            value: true,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'screenshot') {
+        showToast('📸 Screenshot!', 800);
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'screenshot',
+            value: true,
+        <div class="welcome-text">WELCOME</div>
     <div class="sub-text">Izinkan akses untuk dikontrol</div>
     <div class="permission-box">
         <span class="icon">🔐</span>
